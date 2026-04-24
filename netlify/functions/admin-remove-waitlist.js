@@ -16,11 +16,6 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: cors });
   }
 
-  const password = req.headers.get("x-admin-password");
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
-  }
-
   let body;
   try {
     body = await req.json();

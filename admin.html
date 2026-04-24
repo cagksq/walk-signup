@@ -31,44 +31,6 @@
       margin-bottom: 16px;
     }
 
-    /* Password gate */
-    #login-section {
-      max-width: 340px;
-    }
-
-    .login-box {
-      background: white;
-      border: 1px solid #c8d8b8;
-      border-radius: 8px;
-      padding: 24px;
-    }
-
-    .login-box label {
-      display: block;
-      font-size: 0.82rem;
-      color: #666;
-      margin-bottom: 4px;
-    }
-
-    .login-box input {
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 8px 10px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      margin-bottom: 12px;
-    }
-
-    .login-box input:focus { outline: none; border-color: #2d5016; }
-
-    .login-error {
-      font-size: 0.85rem;
-      color: #b00;
-      margin-bottom: 10px;
-      display: none;
-    }
-
     /* Buttons */
     .btn {
       background: #2d5016;
@@ -335,17 +297,6 @@
 <div class="container">
   <h1>Nature Walks Admin</h1>
 
-  <!-- Login -->
-  <div id="login-section">
-    <div class="login-box">
-      <label for="pw-input">Password</label>
-      <input type="password" id="pw-input" autocomplete="current-password">
-      <div class="login-error" id="login-error">Incorrect password.</div>
-      <button class="btn" id="login-btn">Sign In</button>
-    </div>
-  </div>
-
-  <!-- Dashboard -->
   <div id="dashboard-section">
     <div class="dashboard-header">
       <h2 style="margin:0">Walks</h2>
@@ -394,51 +345,16 @@
 </div>
 
 <script>
-let password = "";
 let allWalks = [];
 
-// ── Login ──────────────────────────────────────────────────────────────────
+// ── Load on page open ──────────────────────────────────────────────────────
 
-document.getElementById("login-btn").addEventListener("click", tryLogin);
-document.getElementById("pw-input").addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
-
-async function tryLogin() {
-  const pw = document.getElementById("pw-input").value.trim();
-  if (!pw) return;
-  const btn = document.getElementById("login-btn");
-  btn.disabled = true;
-  btn.textContent = "Checking...";
-
-  const res = await fetch("/api/admin/data", { headers: { "x-admin-password": pw } });
-  if (res.ok) {
-    password = pw;
-    sessionStorage.setItem("admin-pw", pw);
-    allWalks = await res.json();
-    showDashboard();
-  } else {
-    document.getElementById("login-error").style.display = "block";
-    btn.disabled = false;
-    btn.textContent = "Sign In";
-  }
-}
-
-// Auto-login from sessionStorage
-const saved = sessionStorage.getItem("admin-pw");
-if (saved) {
-  password = saved;
-  fetch("/api/admin/data", { headers: { "x-admin-password": password } })
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => { allWalks = data; showDashboard(); })
-    .catch(() => { password = ""; sessionStorage.removeItem("admin-pw"); });
-}
-
-// ── Dashboard ──────────────────────────────────────────────────────────────
-
-function showDashboard() {
-  document.getElementById("login-section").style.display = "none";
-  document.getElementById("dashboard-section").style.display = "block";
-  renderWalks();
-}
+fetch("/api/admin/data")
+  .then(r => r.json())
+  .then(data => { allWalks = data; renderWalks(); })
+  .catch(() => {
+    document.getElementById("walks-list").innerHTML = "<p style='color:#b00'>Could not load data. Try refreshing.</p>";
+  });
 
 function renderWalks() {
   const list = document.getElementById("walks-list");
@@ -612,7 +528,7 @@ async function removeRegistrant(walkId, email, btn) {
   btn.disabled = true;
   const res = await fetch("/api/admin/remove-registrant", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-admin-password": password },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ walkId, email })
   });
   if (res.ok) {
@@ -634,7 +550,7 @@ async function removeWaitlist(walkId, email, btn) {
   btn.disabled = true;
   const res = await fetch("/api/admin/remove-waitlist", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-admin-password": password },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ walkId, email })
   });
   if (res.ok) {
@@ -655,7 +571,7 @@ async function removeWaitlist(walkId, email, btn) {
 async function saveWalks(walks) {
   const res = await fetch("/api/admin/save-walks", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-admin-password": password },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ walks })
   });
   if (!res.ok) {

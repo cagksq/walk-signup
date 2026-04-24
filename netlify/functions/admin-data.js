@@ -16,11 +16,6 @@ export default async (req) => {
     return new Response(null, { status: 204, headers: cors });
   }
 
-  const password = req.headers.get("x-admin-password");
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
-  }
-
   const configStore = getStore("walks-config");
   const configData = await configStore.get("walks", { type: "json" });
   const walks = configData ?? fallbackWalks;
