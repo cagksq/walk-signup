@@ -65,7 +65,7 @@ export default async (req) => {
 
   try {
     await resend.emails.send({
-      from: "Nature Walks <onboarding@resend.dev>",
+      from: "Nature Walks <walks@cagksq.com>",
       to: "clarkegreen@gmail.com",
       subject: `Waitlist signup: ${walk.title}`,
       html: `

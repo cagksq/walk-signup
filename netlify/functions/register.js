@@ -78,13 +78,13 @@ export default async (req) => {
 
   const [r1, r2] = await Promise.all([
     resend.emails.send({
-      from: "Nature Walks <onboarding@resend.dev>",
+      from: "Nature Walks <walks@cagksq.com>",
       to: registration.email,
       subject: `You're signed up: ${walk.title}`,
       html: `<p>Hi ${registration.firstName},</p><p>${confirmationText}</p>`
     }),
     resend.emails.send({
-      from: "Nature Walks <onboarding@resend.dev>",
+      from: "Nature Walks <walks@cagksq.com>",
       to: "clarkegreen@gmail.com",
       subject: `New signup: ${walk.title}`,
       html: `<p><strong>${registration.firstName} ${registration.lastName}</strong> signed up for ${walk.title}.</p><p>Email: ${registration.email}<br>Cell: ${registration.cell}</p><p>${existing.length} of ${walk.capacity} spots filled.</p>`
