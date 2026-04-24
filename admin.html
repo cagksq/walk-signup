@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Nature Walks</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, serif;
+      background: #f9f7f2;
+      color: #2c2c2c;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #2d5016;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      color: #2d5016;
+      margin-bottom: 16px;
+    }
+
+    /* Password gate */
+    #login-section {
+      max-width: 340px;
+    }
+
+    .login-box {
+      background: white;
+      border: 1px solid #c8d8b8;
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .login-box label {
+      display: block;
+      font-size: 0.82rem;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .login-box input {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      margin-bottom: 12px;
+    }
+
+    .login-box input:focus { outline: none; border-color: #2d5016; }
+
+    .login-error {
+      font-size: 0.85rem;
+      color: #b00;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    /* Buttons */
+    .btn {
+      background: #2d5016;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 9px 16px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .btn:hover { background: #3a6b1e; }
+    .btn:disabled { background: #999; cursor: not-allowed; }
+
+    .btn-outline {
+      background: white;
+      color: #2d5016;
+      border: 1px solid #2d5016;
+    }
+
+    .btn-outline:hover { background: #eef4e8; }
+
+    .btn-danger {
+      background: #b00;
+    }
+
+    .btn-danger:hover { background: #900; }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    /* Dashboard */
+    #dashboard-section { display: none; }
+
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Walk list */
+    .walk-item {
+      background: white;
+      border: 1px solid #c8d8b8;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .walk-header {
+      padding: 14px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .walk-header:hover { background: #f5fbf0; }
+
+    .walk-header-left .walk-name {
+      font-weight: bold;
+      color: #2d5016;
+    }
+
+    .walk-header-left .walk-meta-line {
+      font-size: 0.82rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .walk-chevron {
+      font-size: 0.9rem;
+      color: #888;
+      transition: transform 0.2s;
+    }
+
+    .walk-item.open .walk-chevron { transform: rotate(180deg); }
+
+    .walk-body {
+      display: none;
+      padding: 0 18px 18px;
+      border-top: 1px solid #eee;
+    }
+
+    .walk-item.open .walk-body { display: block; }
+
+    /* Edit form */
+    .edit-form {
+      padding-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .edit-form .full-width { grid-column: 1 / -1; }
+
+    .edit-form label {
+      display: block;
+      font-size: 0.78rem;
+      color: #666;
+      margin-bottom: 3px;
+    }
+
+    .edit-form input {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 7px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .edit-form input:focus { outline: none; border-color: #2d5016; }
+
+    .edit-form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .save-feedback {
+      font-size: 0.82rem;
+      color: #2d5016;
+      display: none;
+    }
+
+    /* People lists */
+    .people-section {
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+      margin-top: 6px;
+    }
+
+    .people-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .person-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 12px;
+    }
+
+    .person-row:last-child { border-bottom: none; }
+
+    .person-info {
+      font-size: 0.88rem;
+      color: #333;
+      line-height: 1.4;
+    }
+
+    .person-detail {
+      font-size: 0.78rem;
+      color: #888;
+    }
+
+    .empty-list {
+      font-size: 0.85rem;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* Delete walk */
+    .delete-zone {
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+      margin-top: 16px;
+    }
+
+    /* Add walk modal overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      display: none;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      margin: 16px;
+    }
+
+    .modal h2 { margin-bottom: 16px; }
+
+    .modal-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .modal-form .full-width { grid-column: 1 / -1; }
+
+    .modal-form label {
+      display: block;
+      font-size: 0.78rem;
+      color: #666;
+      margin-bottom: 3px;
+    }
+
+    .modal-form input {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 7px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .modal-form input:focus { outline: none; border-color: #2d5016; }
+
+    .modal-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .modal-error {
+      grid-column: 1 / -1;
+      font-size: 0.82rem;
+      color: #b00;
+      display: none;
+    }
+
+    .loading { color: #999; font-style: italic; }
+
+    @media (max-width: 480px) {
+      .edit-form { grid-template-columns: 1fr; }
+      .edit-form .full-width { grid-column: 1; }
+      .modal-form { grid-template-columns: 1fr; }
+      .modal-form .full-width { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Nature Walks Admin</h1>
+
+  <!-- Login -->
+  <div id="login-section">
+    <div class="login-box">
+      <label for="pw-input">Password</label>
+      <input type="password" id="pw-input" autocomplete="current-password">
+      <div class="login-error" id="login-error">Incorrect password.</div>
+      <button class="btn" id="login-btn">Sign In</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-section">
+    <div class="dashboard-header">
+      <h2 style="margin:0">Walks</h2>
+      <button class="btn" id="add-walk-btn">+ Add Walk</button>
+    </div>
+    <div id="walks-list"><p class="loading">Loading...</p></div>
+  </div>
+</div>
+
+<!-- Add Walk Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h2>Add Walk</h2>
+    <div class="modal-form" id="add-form-grid">
+      <div class="full-width">
+        <label>ID (e.g. walk-2026-06-02)</label>
+        <input id="new-id" placeholder="walk-YYYY-MM-DD">
+      </div>
+      <div class="full-width">
+        <label>Title</label>
+        <input id="new-title" placeholder="Nature Walk, Tuesday June 2">
+      </div>
+      <div class="full-width">
+        <label>Date (full text)</label>
+        <input id="new-date" placeholder="Tuesday, June 2, 2026">
+      </div>
+      <div>
+        <label>Time</label>
+        <input id="new-time" placeholder="9:30–10:30 AM">
+      </div>
+      <div>
+        <label>Capacity</label>
+        <input id="new-capacity" type="number" min="1" placeholder="5">
+      </div>
+      <div class="full-width">
+        <label>Location</label>
+        <input id="new-location" placeholder="Anson B. Nixon Park — meet at the main parking lot">
+      </div>
+      <div class="modal-error" id="add-error"></div>
+      <div class="modal-actions full-width">
+        <button class="btn" id="add-confirm-btn">Add Walk</button>
+        <button class="btn btn-outline" id="add-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let password = "";
+let allWalks = [];
+
+// ── Login ──────────────────────────────────────────────────────────────────
+
+document.getElementById("login-btn").addEventListener("click", tryLogin);
+document.getElementById("pw-input").addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
+
+async function tryLogin() {
+  const pw = document.getElementById("pw-input").value.trim();
+  if (!pw) return;
+  const btn = document.getElementById("login-btn");
+  btn.disabled = true;
+  btn.textContent = "Checking...";
+
+  const res = await fetch("/api/admin/data", { headers: { "x-admin-password": pw } });
+  if (res.ok) {
+    password = pw;
+    sessionStorage.setItem("admin-pw", pw);
+    allWalks = await res.json();
+    showDashboard();
+  } else {
+    document.getElementById("login-error").style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Sign In";
+  }
+}
+
+// Auto-login from sessionStorage
+const saved = sessionStorage.getItem("admin-pw");
+if (saved) {
+  password = saved;
+  fetch("/api/admin/data", { headers: { "x-admin-password": password } })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => { allWalks = data; showDashboard(); })
+    .catch(() => { password = ""; sessionStorage.removeItem("admin-pw"); });
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+
+function showDashboard() {
+  document.getElementById("login-section").style.display = "none";
+  document.getElementById("dashboard-section").style.display = "block";
+  renderWalks();
+}
+
+function renderWalks() {
+  const list = document.getElementById("walks-list");
+  if (allWalks.length === 0) {
+    list.innerHTML = "<p class='empty-list'>No walks. Add one above.</p>";
+    return;
+  }
+  list.innerHTML = allWalks.map((walk, idx) => walkItemHtml(walk, idx)).join("");
+  attachWalkHandlers();
+}
+
+function walkItemHtml(walk, idx) {
+  const regCount = walk.registrants.length;
+  const waitCount = walk.waitlist.length;
+  const metaLine = `${walk.date} · ${regCount}/${walk.capacity} registered${waitCount > 0 ? ` · ${waitCount} waitlist` : ""}`;
+
+  const registrantsHtml = walk.registrants.length > 0
+    ? walk.registrants.map(r => `
+        <div class="person-row">
+          <div class="person-info">
+            ${r.firstName} ${r.lastName}
+            <div class="person-detail">${r.email} · ${r.cell}</div>
+          </div>
+          <button class="btn btn-outline btn-sm remove-reg-btn"
+            data-walk-id="${walk.id}" data-email="${r.email}">Remove</button>
+        </div>`).join("")
+    : `<div class="empty-list">No registrants yet.</div>`;
+
+  const waitlistHtml = walk.waitlist.length > 0
+    ? walk.waitlist.map(r => `
+        <div class="person-row">
+          <div class="person-info">
+            ${r.firstName} ${r.lastName}
+            <div class="person-detail">${r.email} · ${r.cell}</div>
+          </div>
+          <button class="btn btn-outline btn-sm remove-wait-btn"
+            data-walk-id="${walk.id}" data-email="${r.email}">Remove</button>
+        </div>`).join("")
+    : `<div class="empty-list">Waitlist is empty.</div>`;
+
+  return `
+    <div class="walk-item" data-idx="${idx}">
+      <div class="walk-header">
+        <div class="walk-header-left">
+          <div class="walk-name">${walk.title}</div>
+          <div class="walk-meta-line">${metaLine}</div>
+        </div>
+        <span class="walk-chevron">▼</span>
+      </div>
+      <div class="walk-body">
+        <div class="edit-form">
+          <div class="full-width">
+            <label>Title</label>
+            <input class="ef-title" value="${esc(walk.title)}">
+          </div>
+          <div class="full-width">
+            <label>Date (full text)</label>
+            <input class="ef-date" value="${esc(walk.date)}">
+          </div>
+          <div>
+            <label>Time</label>
+            <input class="ef-time" value="${esc(walk.time)}">
+          </div>
+          <div>
+            <label>Capacity</label>
+            <input class="ef-capacity" type="number" min="1" value="${walk.capacity}">
+          </div>
+          <div class="full-width">
+            <label>Location</label>
+            <input class="ef-location" value="${esc(walk.location)}">
+          </div>
+          <div class="edit-form-actions">
+            <button class="btn btn-sm save-walk-btn" data-idx="${idx}">Save</button>
+            <span class="save-feedback" id="sf-${idx}">Saved.</span>
+          </div>
+        </div>
+
+        <div class="people-section">
+          <div class="people-label">Registered (${regCount}/${walk.capacity})</div>
+          ${registrantsHtml}
+        </div>
+
+        <div class="people-section">
+          <div class="people-label">Waitlist (${waitCount})</div>
+          ${waitlistHtml}
+        </div>
+
+        <div class="delete-zone">
+          <button class="btn btn-danger btn-sm delete-walk-btn" data-idx="${idx}">Delete Walk</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+}
+
+function attachWalkHandlers() {
+  // Toggle expand/collapse
+  document.querySelectorAll(".walk-header").forEach(header => {
+    header.addEventListener("click", () => {
+      header.closest(".walk-item").classList.toggle("open");
+    });
+  });
+
+  // Save walk edits
+  document.querySelectorAll(".save-walk-btn").forEach(btn => {
+    btn.addEventListener("click", () => saveWalkEdit(parseInt(btn.dataset.idx), btn));
+  });
+
+  // Remove registrant
+  document.querySelectorAll(".remove-reg-btn").forEach(btn => {
+    btn.addEventListener("click", () => removeRegistrant(btn.dataset.walkId, btn.dataset.email, btn));
+  });
+
+  // Remove waitlist
+  document.querySelectorAll(".remove-wait-btn").forEach(btn => {
+    btn.addEventListener("click", () => removeWaitlist(btn.dataset.walkId, btn.dataset.email, btn));
+  });
+
+  // Delete walk
+  document.querySelectorAll(".delete-walk-btn").forEach(btn => {
+    btn.addEventListener("click", () => deleteWalk(parseInt(btn.dataset.idx)));
+  });
+}
+
+// ── Save walk edits ────────────────────────────────────────────────────────
+
+async function saveWalkEdit(idx, btn) {
+  const item = btn.closest(".walk-item");
+  const updated = {
+    ...allWalks[idx],
+    title: item.querySelector(".ef-title").value.trim(),
+    date: item.querySelector(".ef-date").value.trim(),
+    time: item.querySelector(".ef-time").value.trim(),
+    capacity: parseInt(item.querySelector(".ef-capacity").value) || allWalks[idx].capacity,
+    location: item.querySelector(".ef-location").value.trim()
+  };
+
+  btn.disabled = true;
+  const feedback = document.getElementById(`sf-${idx}`);
+
+  const newWalks = allWalks.map((w, i) => i === idx ? updated : w);
+  const ok = await saveWalks(newWalks);
+  if (ok) {
+    allWalks = newWalks;
+    feedback.style.display = "inline";
+    setTimeout(() => { feedback.style.display = "none"; }, 2000);
+  }
+  btn.disabled = false;
+}
+
+// ── Delete walk ────────────────────────────────────────────────────────────
+
+async function deleteWalk(idx) {
+  const walk = allWalks[idx];
+  if (!confirm(`Delete "${walk.title}"? This cannot be undone.`)) return;
+  const newWalks = allWalks.filter((_, i) => i !== idx);
+  const ok = await saveWalks(newWalks);
+  if (ok) {
+    allWalks = newWalks;
+    renderWalks();
+  }
+}
+
+// ── Remove person ──────────────────────────────────────────────────────────
+
+async function removeRegistrant(walkId, email, btn) {
+  if (!confirm(`Remove ${email} from this walk?`)) return;
+  btn.disabled = true;
+  const res = await fetch("/api/admin/remove-registrant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-password": password },
+    body: JSON.stringify({ walkId, email })
+  });
+  if (res.ok) {
+    const walk = allWalks.find(w => w.id === walkId);
+    if (walk) walk.registrants = walk.registrants.filter(r => r.email !== email);
+    renderWalks();
+    // Re-open the walk that was expanded
+    const items = document.querySelectorAll(".walk-item");
+    const targetIdx = allWalks.findIndex(w => w.id === walkId);
+    if (items[targetIdx]) items[targetIdx].classList.add("open");
+  } else {
+    btn.disabled = false;
+    alert("Remove failed. Try again.");
+  }
+}
+
+async function removeWaitlist(walkId, email, btn) {
+  if (!confirm(`Remove ${email} from the waitlist?`)) return;
+  btn.disabled = true;
+  const res = await fetch("/api/admin/remove-waitlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-password": password },
+    body: JSON.stringify({ walkId, email })
+  });
+  if (res.ok) {
+    const walk = allWalks.find(w => w.id === walkId);
+    if (walk) walk.waitlist = walk.waitlist.filter(r => r.email !== email);
+    renderWalks();
+    const items = document.querySelectorAll(".walk-item");
+    const targetIdx = allWalks.findIndex(w => w.id === walkId);
+    if (items[targetIdx]) items[targetIdx].classList.add("open");
+  } else {
+    btn.disabled = false;
+    alert("Remove failed. Try again.");
+  }
+}
+
+// ── Save walks to blob ─────────────────────────────────────────────────────
+
+async function saveWalks(walks) {
+  const res = await fetch("/api/admin/save-walks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-password": password },
+    body: JSON.stringify({ walks })
+  });
+  if (!res.ok) {
+    alert("Save failed. Please try again.");
+    return false;
+  }
+  return true;
+}
+
+// ── Add walk modal ─────────────────────────────────────────────────────────
+
+document.getElementById("add-walk-btn").addEventListener("click", () => {
+  document.getElementById("add-modal").classList.add("open");
+  document.getElementById("add-error").style.display = "none";
+  document.getElementById("new-id").value = "";
+  document.getElementById("new-title").value = "";
+  document.getElementById("new-date").value = "";
+  document.getElementById("new-time").value = "9:30–10:30 AM";
+  document.getElementById("new-capacity").value = "5";
+  document.getElementById("new-location").value = "Anson B. Nixon Park — meet at the main parking lot";
+});
+
+document.getElementById("add-cancel-btn").addEventListener("click", () => {
+  document.getElementById("add-modal").classList.remove("open");
+});
+
+document.getElementById("add-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("add-modal")) {
+    document.getElementById("add-modal").classList.remove("open");
+  }
+});
+
+document.getElementById("add-confirm-btn").addEventListener("click", async () => {
+  const id = document.getElementById("new-id").value.trim();
+  const title = document.getElementById("new-title").value.trim();
+  const date = document.getElementById("new-date").value.trim();
+  const time = document.getElementById("new-time").value.trim();
+  const capacity = parseInt(document.getElementById("new-capacity").value);
+  const location = document.getElementById("new-location").value.trim();
+  const errorEl = document.getElementById("add-error");
+
+  if (!id || !title || !date || !time || !capacity || !location) {
+    errorEl.textContent = "All fields are required.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (allWalks.some(w => w.id === id)) {
+    errorEl.textContent = "A walk with that ID already exists.";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const newWalk = { id, title, date, time, location, capacity };
+  const newWalks = [...allWalks, newWalk];
+  const btn = document.getElementById("add-confirm-btn");
+  btn.disabled = true;
+
+  const ok = await saveWalks(newWalks);
+  if (ok) {
+    allWalks = [...newWalks.map(w => w.id === id ? { ...newWalk, registrants: [], waitlist: [] } : allWalks.find(aw => aw.id === w.id) || w)];
+    document.getElementById("add-modal").classList.remove("open");
+    renderWalks();
+  }
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>

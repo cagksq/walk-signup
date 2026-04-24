@@ -6,7 +6,7 @@ const fallbackWalks = JSON.parse(readFileSync(join(__dirname, "../../data/walks.
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-admin-password",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Content-Type": "application/json"
 };
@@ -16,30 +16,32 @@ export default async (req) => {
     return new Response(null, { status: 204, headers: cors });
   }
 
+  const password = req.headers.get("x-admin-password");
+  if (!password || password !== process.env.ADMIN_PASSWORD) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
+  }
+
   const configStore = getStore("walks-config");
   const configData = await configStore.get("walks", { type: "json" });
   const walks = configData ?? fallbackWalks;
 
-  const store = getStore("registrations");
+  const regStore = getStore("registrations");
+  const waitStore = getStore("waitlist");
 
   const result = [];
   for (const walk of walks) {
-    const data = await store.get(walk.id, { type: "json" });
-    const existing = data ?? [];
+    const [regData, waitData] = await Promise.all([
+      regStore.get(walk.id, { type: "json" }),
+      waitStore.get(walk.id, { type: "json" })
+    ]);
     result.push({
-      id: walk.id,
-      title: walk.title,
-      date: walk.date,
-      time: walk.time,
-      location: walk.location,
-      capacity: walk.capacity,
-      registrants: existing.map(r => ({ firstName: r.firstName, lastName: r.lastName })),
-      full: existing.length >= walk.capacity,
-      count: existing.length
+      ...walk,
+      registrants: regData ?? [],
+      waitlist: waitData ?? []
     });
   }
 
   return new Response(JSON.stringify(result), { headers: cors });
 };
 
-export const config = { path: "/api/walks" };
+export const config = { path: "/api/admin/data" };

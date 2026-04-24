@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const walks = JSON.parse(readFileSync(join(__dirname, "../../data/walks.json"), "utf8"));
+const fallbackWalks = JSON.parse(readFileSync(join(__dirname, "../../data/walks.json"), "utf8"));
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const cors = {
@@ -34,6 +34,10 @@ export default async (req) => {
   if (!walkId || !firstName || !lastName || !email || !cell) {
     return new Response(JSON.stringify({ error: "All fields are required" }), { status: 400, headers: cors });
   }
+
+  const configStore = getStore("walks-config");
+  const configData = await configStore.get("walks", { type: "json" });
+  const walks = configData ?? fallbackWalks;
 
   const walk = walks.find(w => w.id === walkId);
   if (!walk) {
