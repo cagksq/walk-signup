@@ -1,0 +1,34 @@
+[
+  {
+    "id": "walk-2026-05-05",
+    "title": "Nature Walk, Tuesday May 5",
+    "date": "Tuesday, May 5, 2026",
+    "time": "9:30–10:30 AM",
+    "location": "Anson B. Nixon Park — meet at the main parking lot",
+    "capacity": 5
+  },
+  {
+    "id": "walk-2026-05-12",
+    "title": "Nature Walk, Tuesday May 12",
+    "date": "Tuesday, May 12, 2026",
+    "time": "9:30–10:30 AM",
+    "location": "Anson B. Nixon Park — meet at the main parking lot",
+    "capacity": 5
+  },
+  {
+    "id": "walk-2026-05-19",
+    "title": "Nature Walk, Tuesday May 19",
+    "date": "Tuesday, May 19, 2026",
+    "time": "9:30–10:30 AM",
+    "location": "Anson B. Nixon Park — meet at the main parking lot",
+    "capacity": 5
+  },
+  {
+    "id": "walk-2026-05-26",
+    "title": "Nature Walk, Tuesday May 26",
+    "date": "Tuesday, May 26, 2026",
+    "time": "9:30–10:30 AM",
+    "location": "Anson B. Nixon Park — meet at the main parking lot",
+    "capacity": 5
+  }
+]

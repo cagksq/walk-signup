@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anson B. Nixon Park Nature Walks Signup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, serif;
+      background: #f9f7f2;
+      color: #2c2c2c;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #2d5016;
+    }
+
+    /* Info box */
+    .intro {
+      background: #eef4e8;
+      border-left: 3px solid #2d5016;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .intro-header {
+      font-weight: bold;
+      color: #2d5016;
+      margin-bottom: 8px;
+    }
+
+    .intro ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .intro li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .intro li svg {
+      flex-shrink: 0;
+      margin-top: 3px;
+      color: #2d5016;
+    }
+
+    /* Date grid */
+    .date-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .date-btn {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: left;
+      color: #2c2c2c;
+      line-height: 1.4;
+    }
+
+    .date-btn:hover:not(.full-btn) { background: #f0f7e8; border-color: #2d5016; }
+
+    .date-btn.selected {
+      background: #2d5016;
+      color: white;
+      border-color: #2d5016;
+    }
+
+    .date-btn.selected .spot-count { color: rgba(255,255,255,0.8); }
+
+    .date-btn.full-btn {
+      background: #f5f5f5;
+      color: #999;
+      border-color: #e0e0e0;
+      cursor: default;
+    }
+
+    .date-label { font-weight: bold; }
+
+    .spot-count {
+      font-size: 0.78rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .spot-green  { color: #2d5016; }
+    .spot-amber  { color: #b45309; }
+    .spot-red    { color: #b00; }
+    .spot-gray   { color: #999; }
+
+    /* Walk detail card */
+    .walk-card {
+      background: white;
+      border: 1px solid #c8d8b8;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .walk-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #2d5016;
+      margin-bottom: 6px;
+    }
+
+    .walk-meta {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .spots-line {
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 14px;
+    }
+
+    /* Form */
+    form {
+      border-top: 1px solid #eee;
+      padding-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    form .full-width { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      color: #666;
+      margin-bottom: 3px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    input:focus { outline: none; border-color: #2d5016; }
+
+    button[type="submit"] {
+      grid-column: 1 / -1;
+      background: #2d5016;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover { background: #3a6b1e; }
+    button[type="submit"]:disabled { background: #999; cursor: not-allowed; }
+
+    .msg {
+      grid-column: 1 / -1;
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .msg.success { background: #e8f5e9; color: #2d5016; display: block; }
+    .msg.error   { background: #fdecea; color: #b00; display: block; }
+
+    /* Full notice */
+    .full-notice {
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+      color: #b00;
+      font-weight: bold;
+    }
+
+    /* Waitlist section */
+    .waitlist-section { margin-top: 4px; }
+
+    .waitlist-label {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    /* Registrant list */
+    .registrants {
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+      margin-top: 16px;
+    }
+
+    .registrants-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .registrant-name {
+      font-size: 0.9rem;
+      color: #444;
+      padding: 3px 0;
+    }
+
+    .loading { color: #999; font-style: italic; }
+
+    /* Calendar buttons */
+    .cal-buttons {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .cal-btn {
+      flex: 1;
+      min-width: 140px;
+      background: white;
+      color: #2d5016;
+      border: 1px solid #2d5016;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .cal-btn:hover { background: #eef4e8; }
+
+    @media (max-width: 480px) {
+      form { grid-template-columns: 1fr; }
+      form .full-width { grid-column: 1; }
+      button[type="submit"] { grid-column: 1; }
+      .msg { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Anson B. Nixon Park Nature Walks</h1>
+
+  <div class="intro">
+    <div class="intro-header">Walks are held Tuesdays, 9:30–10:30 AM</div>
+    <ul>
+      <li>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Open to adults and older children (10 years and up)
+      </li>
+      <li>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.7-5.5 6-5.5s6 2.5 6 5.5"/><circle cx="17" cy="8" r="3"/><path d="M21 20c0-3-2.7-5.5-6-5.5"/></svg>
+        Group size limited to five
+      </li>
+      <li>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>
+        Cancellations announced by text as far in advance as possible
+      </li>
+    </ul>
+  </div>
+
+  <div id="walks-container">
+    <p class="loading">Loading walks...</p>
+  </div>
+</div>
+
+<script>
+const API_BASE = "";
+let allWalks = [];
+let selectedId = null;
+
+async function loadWalks() {
+  const container = document.getElementById("walks-container");
+  try {
+    const res = await fetch(`${API_BASE}/api/walks`);
+    allWalks = await res.json();
+    render();
+  } catch (e) {
+    container.innerHTML = "<p>Could not load walks. Please try again later.</p>";
+  }
+}
+
+function shortDate(dateStr) {
+  // "Tuesday, May 5, 2026" → "May 5"
+  const parts = dateStr.split(", ");
+  return parts[1] || dateStr;
+}
+
+function spotInfo(walk) {
+  if (walk.full) return { text: "Full", cls: "spot-gray" };
+  const left = walk.capacity - walk.count;
+  const label = `${left} spot${left === 1 ? "" : "s"} left`;
+  if (left >= 4) return { text: label, cls: "spot-green" };
+  if (left >= 2) return { text: label, cls: "spot-amber" };
+  return { text: label, cls: "spot-red" };
+}
+
+const MONTHS = { January:0, February:1, March:2, April:3, May:4, June:5, July:6, August:7, September:8, October:9, November:10, December:11 };
+
+function parseWalkDate(dateStr) {
+  // "Tuesday, May 5, 2026" → { shortDate: "Tuesday, May 5", calDate: "20260505" }
+  const parts = dateStr.split(", ");           // ["Tuesday", "May 5", "2026"]
+  const [monthName, dayStr] = parts[1].split(" ");
+  const year = parseInt(parts[2]);
+  const m = String(MONTHS[monthName] + 1).padStart(2, "0");
+  const d = String(parseInt(dayStr)).padStart(2, "0");
+  return { shortDate: parts[0] + ", " + parts[1], calDate: `${year}${m}${d}` };
+}
+
+function googleCalUrl(walk) {
+  const { calDate, shortDate } = parseWalkDate(walk.date);
+  const desc = confirmText(shortDate);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "Nature Walk at Nixon Park",
+    dates: `${calDate}T093000/${calDate}T103000`,
+    details: desc,
+    location: "Main parking lot, Anson B. Nixon Park, Kennett Square, PA"
+  });
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
+function confirmText(shortDate) {
+  return `You're signed up for the Nature Walk on ${shortDate}. Meet at the main parking lot at Anson B. Nixon Park at 9:30 AM. Cancellations announced by text as far in advance as possible.`;
+}
+
+function downloadIcs(walk) {
+  const { calDate, shortDate } = parseWalkDate(walk.date);
+  const desc = confirmText(shortDate).replace(/,/g, "\\,");
+  const lines = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Nature Walk//EN",
+    "BEGIN:VEVENT",
+    `DTSTART:${calDate}T093000`,
+    `DTEND:${calDate}T103000`,
+    "SUMMARY:Nature Walk at Nixon Park",
+    "LOCATION:Main parking lot\\, Anson B. Nixon Park\\, Kennett Square\\, PA",
+    `DESCRIPTION:${desc}`,
+    `UID:${walk.id}@cagksq.com`,
+    "END:VEVENT", "END:VCALENDAR"
+  ].join("\r\n");
+  const blob = new Blob([lines], { type: "text/calendar" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `nature-walk-${walk.id}.ics`; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function render() {
+  const container = document.getElementById("walks-container");
+
+  const buttons = allWalks.map(walk => {
+    const { text, cls } = spotInfo(walk);
+    const isSelected = walk.id === selectedId;
+    const isFull = walk.full;
+    return `
+      <button
+        class="date-btn ${isFull ? "full-btn" : ""} ${isSelected ? "selected" : ""}"
+        data-id="${walk.id}"
+        ${isFull ? "disabled" : ""}
+      >
+        <span class="date-label">${shortDate(walk.date)}</span>
+        <span class="spot-count ${isSelected ? "" : cls}">${text}</span>
+      </button>`;
+  }).join("");
+
+  let detailHtml = "";
+  if (selectedId) {
+    const walk = allWalks.find(w => w.id === selectedId);
+    if (walk) detailHtml = buildCard(walk);
+  }
+
+  container.innerHTML = `
+    <div class="date-grid">${buttons}</div>
+    <div id="walk-detail">${detailHtml}</div>
+  `;
+
+  container.querySelectorAll(".date-btn:not([disabled])").forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectedId = btn.dataset.id === selectedId ? null : btn.dataset.id;
+      render();
+    });
+  });
+
+  const signupForm = container.querySelector("form.signup-form");
+  if (signupForm) {
+    const walk = allWalks.find(w => w.id === selectedId);
+    signupForm.addEventListener("submit", e => handleSubmit(e, walk, "/api/register", "signup-form"));
+  }
+
+  const waitlistForm = container.querySelector("form.waitlist-form");
+  if (waitlistForm) {
+    const walk = allWalks.find(w => w.id === selectedId);
+    waitlistForm.addEventListener("submit", e => handleSubmit(e, walk, "/api/waitlist", "waitlist-form"));
+  }
+}
+
+function buildCard(walk) {
+  const { text: spotText, cls: spotCls } = spotInfo(walk);
+  const spotsLine = walk.full
+    ? `<div class="spots-line" style="color:#999">Walk is full</div>`
+    : `<div class="spots-line ${spotCls}">${walk.capacity - walk.count} of ${walk.capacity} spots remaining</div>`;
+
+  const registrantHtml = walk.registrants.length > 0 ? `
+    <div class="registrants">
+      <div class="registrants-label">Signed up</div>
+      ${walk.registrants.map(r => `<div class="registrant-name">${r.firstName} ${r.lastName}</div>`).join("")}
+    </div>` : "";
+
+  const formHtml = walk.full ? `
+    <div class="full-notice">This walk is full.</div>
+    <div class="waitlist-section">
+      <div class="waitlist-label">Join the waitlist and we'll contact you if a spot opens up.</div>
+      ${formFields("waitlist-form", "Join Waitlist", walk.id)}
+    </div>` : formFields("signup-form", "Sign Me Up", walk.id);
+
+  return `
+    <div class="walk-card">
+      <div class="walk-title">${walk.title}</div>
+      <div class="walk-meta">${walk.time}<br>${walk.location}</div>
+      ${spotsLine}
+      ${formHtml}
+      ${registrantHtml}
+    </div>`;
+}
+
+function formFields(cls, label, walkId) {
+  return `
+    <form class="${cls}" data-walk-id="${walkId}">
+      <div>
+        <label>First name</label>
+        <input name="firstName" required>
+      </div>
+      <div>
+        <label>Last name</label>
+        <input name="lastName" required>
+      </div>
+      <div class="full-width">
+        <label>Email</label>
+        <input name="email" type="email" required>
+      </div>
+      <div class="full-width">
+        <label>Cell number</label>
+        <input name="cell" type="tel" required>
+      </div>
+      <div class="msg"></div>
+      <button type="submit">${label}</button>
+    </form>`;
+}
+
+async function handleSubmit(e, walk, endpoint, formCls) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = form.querySelector("button[type=submit]");
+  const msg = form.querySelector(".msg");
+
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  msg.className = "msg";
+
+  const payload = {
+    walkId: walk.id,
+    firstName: form.firstName.value,
+    lastName: form.lastName.value,
+    email: form.email.value,
+    cell: form.cell.value
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      if (formCls === "signup-form") {
+        const left = data.spotsLeft;
+        msg.textContent = `You're signed up! ${left > 0 ? `${left} spot${left === 1 ? "" : "s"} left.` : "That was the last spot!"}`;
+        // Add calendar buttons
+        const calDiv = document.createElement("div");
+        calDiv.className = "cal-buttons";
+        calDiv.innerHTML = `
+          <a class="cal-btn" href="${googleCalUrl(walk)}" target="_blank" rel="noopener">Add to Google Calendar</a>
+          <button class="cal-btn" id="ics-btn">Download for Apple / Outlook</button>
+        `;
+        msg.after(calDiv);
+        calDiv.querySelector("#ics-btn").addEventListener("click", () => downloadIcs(walk));
+      } else {
+        msg.textContent = "You're on the waitlist. We'll contact you if a spot opens.";
+      }
+      msg.className = "msg success";
+      btn.textContent = "Submitted";
+      setTimeout(loadWalks, 2000);
+    } else {
+      msg.textContent = data.error || "Something went wrong. Please try again.";
+      msg.className = "msg error";
+      btn.disabled = false;
+      btn.textContent = formCls === "signup-form" ? "Sign Me Up" : "Join Waitlist";
+    }
+  } catch {
+    msg.textContent = "Connection error. Please try again.";
+    msg.className = "msg error";
+    btn.disabled = false;
+    btn.textContent = formCls === "signup-form" ? "Sign Me Up" : "Join Waitlist";
+  }
+}
+
+loadWalks();
+</script>
+</body>
+</html>
