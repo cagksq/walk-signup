@@ -308,6 +308,51 @@
 
     .loading { color: #999; font-style: italic; }
 
+    /* Contact section */
+    .contact-section {
+      border-top: 1px solid #eee;
+      padding-top: 14px;
+      margin-top: 6px;
+    }
+
+    .contact-panel { margin-top: 12px; }
+
+    .contact-tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 12px;
+    }
+
+    .ctab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 6px 16px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #666;
+      margin-bottom: -1px;
+    }
+
+    .ctab.active { color: #2d5016; border-bottom-color: #2d5016; font-weight: bold; }
+    .ctab:hover { color: #2d5016; }
+
+    .sms-compose {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .sms-compose:focus { outline: none; border-color: #2d5016; }
+    .sms-result { font-size: 0.85rem; }
+    .sms-ok { color: #2d5016; }
+    .sms-err { color: #b00; }
+
     @media (max-width: 480px) {
       .edit-form { grid-template-columns: 1fr; }
       .edit-form .full-width { grid-column: 1; }
@@ -396,6 +441,36 @@ function walkItemHtml(walk, idx) {
   const waitCount = walk.waitlist.length;
   const metaLine = `${walk.date} · ${regCount}/${walk.capacity} registered${waitCount > 0 ? ` · ${waitCount} waitlist` : ""}`;
 
+  const bcc = encodeURIComponent(walk.registrants.map(r => r.email).join(","));
+  const mailtoHref = `mailto:?bcc=${bcc}&subject=${encodeURIComponent(walk.title)}`;
+  const hasRegs = walk.registrants.length > 0;
+
+  const contactHtml = `
+    <div class="contact-section">
+      <button class="btn btn-outline btn-sm contact-toggle-btn">Contact Registrants</button>
+      <div class="contact-panel" id="cp-${idx}" style="display:none">
+        <div class="contact-tabs">
+          <button class="ctab active" data-panel="cp-email-${idx}">Email</button>
+          <button class="ctab" data-panel="cp-text-${idx}">Text</button>
+        </div>
+        <div id="cp-email-${idx}" class="ctab-content">
+          ${hasRegs
+            ? `<a class="btn btn-outline btn-sm" href="${mailtoHref}">Open in Email App</a>
+               <p style="font-size:0.8rem;color:#888;margin-top:8px">All registrant emails loaded in BCC — they won't see each other's addresses.</p>`
+            : `<p class="empty-list">No registrants to email.</p>`}
+        </div>
+        <div id="cp-text-${idx}" class="ctab-content" style="display:none">
+          ${hasRegs
+            ? `<textarea class="sms-compose" rows="3" placeholder="Type your message..."></textarea>
+               <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+                 <button class="btn btn-sm send-sms-btn" data-walk-id="${walk.id}">Send Text</button>
+                 <span class="sms-result"></span>
+               </div>`
+            : `<p class="empty-list">No registrants to text.</p>`}
+        </div>
+      </div>
+    </div>`;
+
   const registrantsHtml = walk.registrants.length > 0
     ? walk.registrants.map(r => `
         <div class="person-row">
@@ -467,6 +542,8 @@ function walkItemHtml(walk, idx) {
           ${waitlistHtml}
         </div>
 
+        ${contactHtml}
+
         <div class="delete-zone">
           <button class="btn btn-danger btn-sm delete-walk-btn" data-idx="${idx}">Delete Walk</button>
         </div>
@@ -504,6 +581,31 @@ function attachWalkHandlers() {
   // Delete walk
   document.querySelectorAll(".delete-walk-btn").forEach(btn => {
     btn.addEventListener("click", () => deleteWalk(parseInt(btn.dataset.idx)));
+  });
+
+  // Contact panel toggle
+  document.querySelectorAll(".contact-toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const panel = btn.nextElementSibling;
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    });
+  });
+
+  // Contact tab switching
+  document.querySelectorAll(".ctab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const tabsEl = tab.closest(".contact-tabs");
+      const panelEl = tab.closest(".contact-panel");
+      tabsEl.querySelectorAll(".ctab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      panelEl.querySelectorAll(".ctab-content").forEach(c => c.style.display = "none");
+      document.getElementById(tab.dataset.panel).style.display = "block";
+    });
+  });
+
+  // Send SMS
+  document.querySelectorAll(".send-sms-btn").forEach(btn => {
+    btn.addEventListener("click", () => sendSms(btn.dataset.walkId, btn));
   });
 }
 
@@ -589,6 +691,57 @@ async function removeWaitlist(walkId, email, btn) {
     btn.disabled = false;
     alert("Remove failed. Try again.");
   }
+}
+
+// ── Send SMS ───────────────────────────────────────────────────────────────
+
+async function sendSms(walkId, btn) {
+  const content = btn.closest(".ctab-content");
+  const textarea = content.querySelector(".sms-compose");
+  const resultEl = content.querySelector(".sms-result");
+  const message = textarea.value.trim();
+
+  if (!message) {
+    resultEl.textContent = "Please type a message first.";
+    resultEl.className = "sms-result sms-err";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+  resultEl.textContent = "";
+  resultEl.className = "sms-result";
+
+  try {
+    const res = await fetch("/api/admin/send-sms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ walkId, message })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      const ok  = data.results.filter(r => r.success).length;
+      const bad = data.results.filter(r => !r.success);
+      if (bad.length === 0) {
+        resultEl.textContent = `Sent to ${ok} registrant${ok !== 1 ? "s" : ""}.`;
+        resultEl.className = "sms-result sms-ok";
+        textarea.value = "";
+      } else {
+        resultEl.textContent = `${ok} sent. Failed: ${bad.map(r => r.name).join(", ")}`;
+        resultEl.className = "sms-result sms-err";
+      }
+    } else {
+      resultEl.textContent = data.error || "Send failed.";
+      resultEl.className = "sms-result sms-err";
+    }
+  } catch {
+    resultEl.textContent = "Connection error. Try again.";
+    resultEl.className = "sms-result sms-err";
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Send Text";
 }
 
 // ── Save walks to blob ─────────────────────────────────────────────────────
