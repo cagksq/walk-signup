@@ -443,6 +443,13 @@ function walkItemHtml(walk, idx) {
 
   const bcc = encodeURIComponent(walk.registrants.map(r => r.email).join(","));
   const mailtoHref = `mailto:?bcc=${bcc}&subject=${encodeURIComponent(walk.title)}`;
+  const smsNumbers = walk.registrants.map(r => {
+    const d = r.cell.replace(/\D/g, "");
+    if (d.length === 10) return `+1${d}`;
+    if (d.length === 11 && d[0] === "1") return `+${d}`;
+    return null;
+  }).filter(Boolean).join(",");
+  const smsHref = `sms:${smsNumbers}`;
   const hasRegs = walk.registrants.length > 0;
 
   const contactHtml = `
@@ -450,9 +457,12 @@ function walkItemHtml(walk, idx) {
       <button class="btn btn-outline btn-sm contact-toggle-btn">Contact Registrants</button>
       <div class="contact-panel" id="cp-${idx}" style="display:none;margin-top:12px">
         ${hasRegs
-          ? `<a class="btn btn-outline btn-sm" href="${mailtoHref}">Open in Email App</a>
-             <p style="font-size:0.8rem;color:#888;margin-top:8px">All registrant emails loaded in BCC — they won't see each other's addresses.</p>`
-          : `<p class="empty-list">No registrants to email.</p>`}
+          ? `<div style="display:flex;gap:8px;flex-wrap:wrap">
+               <a class="btn btn-outline btn-sm" href="${mailtoHref}">Email</a>
+               <a class="btn btn-outline btn-sm" href="${smsHref}">Text</a>
+             </div>
+             <p style="font-size:0.8rem;color:#888;margin-top:8px">Email: all addresses in BCC. Text: opens your phone's Messages app. Use on mobile.</p>`
+          : `<p class="empty-list">No registrants to contact.</p>`}
       </div>
     </div>`;
 
