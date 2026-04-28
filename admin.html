@@ -448,26 +448,11 @@ function walkItemHtml(walk, idx) {
   const contactHtml = `
     <div class="contact-section">
       <button class="btn btn-outline btn-sm contact-toggle-btn">Contact Registrants</button>
-      <div class="contact-panel" id="cp-${idx}" style="display:none">
-        <div class="contact-tabs">
-          <button class="ctab active" data-panel="cp-email-${idx}">Email</button>
-          <button class="ctab" data-panel="cp-text-${idx}">Text</button>
-        </div>
-        <div id="cp-email-${idx}" class="ctab-content">
-          ${hasRegs
-            ? `<a class="btn btn-outline btn-sm" href="${mailtoHref}">Open in Email App</a>
-               <p style="font-size:0.8rem;color:#888;margin-top:8px">All registrant emails loaded in BCC — they won't see each other's addresses.</p>`
-            : `<p class="empty-list">No registrants to email.</p>`}
-        </div>
-        <div id="cp-text-${idx}" class="ctab-content" style="display:none">
-          ${hasRegs
-            ? `<textarea class="sms-compose" rows="3" placeholder="Type your message..."></textarea>
-               <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
-                 <button class="btn btn-sm send-sms-btn" data-walk-id="${walk.id}">Send Text</button>
-                 <span class="sms-result"></span>
-               </div>`
-            : `<p class="empty-list">No registrants to text.</p>`}
-        </div>
+      <div class="contact-panel" id="cp-${idx}" style="display:none;margin-top:12px">
+        ${hasRegs
+          ? `<a class="btn btn-outline btn-sm" href="${mailtoHref}">Open in Email App</a>
+             <p style="font-size:0.8rem;color:#888;margin-top:8px">All registrant emails loaded in BCC — they won't see each other's addresses.</p>`
+          : `<p class="empty-list">No registrants to email.</p>`}
       </div>
     </div>`;
 
@@ -591,22 +576,6 @@ function attachWalkHandlers() {
     });
   });
 
-  // Contact tab switching
-  document.querySelectorAll(".ctab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      const tabsEl = tab.closest(".contact-tabs");
-      const panelEl = tab.closest(".contact-panel");
-      tabsEl.querySelectorAll(".ctab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      panelEl.querySelectorAll(".ctab-content").forEach(c => c.style.display = "none");
-      document.getElementById(tab.dataset.panel).style.display = "block";
-    });
-  });
-
-  // Send SMS
-  document.querySelectorAll(".send-sms-btn").forEach(btn => {
-    btn.addEventListener("click", () => sendSms(btn.dataset.walkId, btn));
-  });
 }
 
 // ── Save walk edits ────────────────────────────────────────────────────────
@@ -691,57 +660,6 @@ async function removeWaitlist(walkId, email, btn) {
     btn.disabled = false;
     alert("Remove failed. Try again.");
   }
-}
-
-// ── Send SMS ───────────────────────────────────────────────────────────────
-
-async function sendSms(walkId, btn) {
-  const content = btn.closest(".ctab-content");
-  const textarea = content.querySelector(".sms-compose");
-  const resultEl = content.querySelector(".sms-result");
-  const message = textarea.value.trim();
-
-  if (!message) {
-    resultEl.textContent = "Please type a message first.";
-    resultEl.className = "sms-result sms-err";
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "Sending...";
-  resultEl.textContent = "";
-  resultEl.className = "sms-result";
-
-  try {
-    const res = await fetch("/api/admin/send-sms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ walkId, message })
-    });
-    const data = await res.json();
-
-    if (res.ok) {
-      const ok  = data.results.filter(r => r.success).length;
-      const bad = data.results.filter(r => !r.success);
-      if (bad.length === 0) {
-        resultEl.textContent = `Sent to ${ok} registrant${ok !== 1 ? "s" : ""}.`;
-        resultEl.className = "sms-result sms-ok";
-        textarea.value = "";
-      } else {
-        resultEl.textContent = `${ok} sent. Failed: ${bad.map(r => r.name).join(", ")}`;
-        resultEl.className = "sms-result sms-err";
-      }
-    } else {
-      resultEl.textContent = data.error || "Send failed.";
-      resultEl.className = "sms-result sms-err";
-    }
-  } catch {
-    resultEl.textContent = "Connection error. Try again.";
-    resultEl.className = "sms-result sms-err";
-  }
-
-  btn.disabled = false;
-  btn.textContent = "Send Text";
 }
 
 // ── Save walks to blob ─────────────────────────────────────────────────────
