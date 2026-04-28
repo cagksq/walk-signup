@@ -30,7 +30,7 @@ export default async (req) => {
     return new Response(JSON.stringify({ error: "Invalid request body" }), { status: 400, headers: cors });
   }
 
-  const { walkId, firstName, lastName, email, cell } = body;
+  const { walkId, firstName, lastName, email, cell, comment } = body;
 
   if (!walkId || !firstName || !lastName || !email || !cell) {
     return new Response(JSON.stringify({ error: "All fields are required" }), { status: 400, headers: cors });
@@ -67,6 +67,7 @@ export default async (req) => {
     lastName: lastName.trim(),
     email: email.trim().toLowerCase(),
     cell: cell.trim(),
+    comment: comment ? comment.trim() : "",
     registeredAt: new Date().toISOString()
   };
 
@@ -87,7 +88,7 @@ export default async (req) => {
       from: "Nature Walks <walks@cagksq.com>",
       to: "clarkegreen@gmail.com",
       subject: `New signup: ${walk.title}`,
-      html: `<p><strong>${registration.firstName} ${registration.lastName}</strong> signed up for ${walk.title}.</p><p>Email: ${registration.email}<br>Cell: ${registration.cell}</p><p>${existing.length} of ${walk.capacity} spots filled.</p>`
+      html: `<p><strong>${registration.firstName} ${registration.lastName}</strong> signed up for ${walk.title}.</p><p>Email: ${registration.email}<br>Cell: ${registration.cell}${registration.comment ? `<br>Comment: ${registration.comment}` : ""}</p><p>${existing.length} of ${walk.capacity} spots filled.</p>`
     })
   ]);
 

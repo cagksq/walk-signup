@@ -282,6 +282,30 @@
       display: none;
     }
 
+    .disclosure-toggle {
+      background: none;
+      border: none;
+      color: #2d5016;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .disclosure-toggle:hover { color: #3a6b1e; }
+
+    .details-section {
+      display: none;
+      grid-column: 1 / -1;
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .details-section.open { display: grid; }
+
     .loading { color: #999; font-style: italic; }
 
     @media (max-width: 480px) {
@@ -312,28 +336,29 @@
     <h2>Add Walk</h2>
     <div class="modal-form" id="add-form-grid">
       <div class="full-width">
-        <label>ID (e.g. walk-2026-06-02)</label>
-        <input id="new-id" placeholder="walk-YYYY-MM-DD">
+        <label>Date</label>
+        <input type="date" id="new-date-picker">
       </div>
       <div class="full-width">
-        <label>Title</label>
-        <input id="new-title" placeholder="Nature Walk, Tuesday June 2">
+        <label>Note <span style="color:#999;font-weight:normal">(optional)</span></label>
+        <input id="new-note" placeholder="e.g. Wildflowers, Bird Survey">
       </div>
       <div class="full-width">
-        <label>Date (full text)</label>
-        <input id="new-date" placeholder="Tuesday, June 2, 2026">
+        <button type="button" class="disclosure-toggle" id="details-toggle">Different time, capacity, or location?</button>
       </div>
-      <div>
-        <label>Time</label>
-        <input id="new-time" placeholder="9:30–10:30 AM">
-      </div>
-      <div>
-        <label>Capacity</label>
-        <input id="new-capacity" type="number" min="1" placeholder="5">
-      </div>
-      <div class="full-width">
-        <label>Location</label>
-        <input id="new-location" placeholder="Anson B. Nixon Park — meet at the main parking lot">
+      <div class="details-section" id="details-section">
+        <div>
+          <label>Time</label>
+          <input id="new-time" value="9:30–10:30 AM">
+        </div>
+        <div>
+          <label>Capacity</label>
+          <input id="new-capacity" type="number" min="1" value="5">
+        </div>
+        <div class="full-width">
+          <label>Location</label>
+          <input id="new-location" value="Anson B. Nixon Park — meet at the main parking lot">
+        </div>
       </div>
       <div class="modal-error" id="add-error"></div>
       <div class="modal-actions full-width">
@@ -583,15 +608,35 @@ async function saveWalks(walks) {
 
 // ── Add walk modal ─────────────────────────────────────────────────────────
 
+const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function walkFromDatePicker(pickerVal, note) {
+  const [year, month, day] = pickerVal.split("-").map(Number);
+  const d = new Date(year, month - 1, day);
+  const dayName   = DAYS[d.getDay()];
+  const monthName = MONTHS[d.getMonth()];
+  const baseTitle = `Nature Walk, ${dayName} ${monthName} ${day}`;
+  return {
+    id:    `walk-${pickerVal}`,
+    title: note ? `${baseTitle} — ${note}` : baseTitle,
+    date:  `${dayName}, ${monthName} ${day}, ${year}`
+  };
+}
+
 document.getElementById("add-walk-btn").addEventListener("click", () => {
   document.getElementById("add-modal").classList.add("open");
   document.getElementById("add-error").style.display = "none";
-  document.getElementById("new-id").value = "";
-  document.getElementById("new-title").value = "";
-  document.getElementById("new-date").value = "";
+  document.getElementById("new-date-picker").value = "";
+  document.getElementById("new-note").value = "";
   document.getElementById("new-time").value = "9:30–10:30 AM";
   document.getElementById("new-capacity").value = "5";
   document.getElementById("new-location").value = "Anson B. Nixon Park — meet at the main parking lot";
+  document.getElementById("details-section").classList.remove("open");
+});
+
+document.getElementById("details-toggle").addEventListener("click", () => {
+  document.getElementById("details-section").classList.toggle("open");
 });
 
 document.getElementById("add-cancel-btn").addEventListener("click", () => {
@@ -605,22 +650,23 @@ document.getElementById("add-modal").addEventListener("click", e => {
 });
 
 document.getElementById("add-confirm-btn").addEventListener("click", async () => {
-  const id = document.getElementById("new-id").value.trim();
-  const title = document.getElementById("new-title").value.trim();
-  const date = document.getElementById("new-date").value.trim();
-  const time = document.getElementById("new-time").value.trim();
-  const capacity = parseInt(document.getElementById("new-capacity").value);
-  const location = document.getElementById("new-location").value.trim();
-  const errorEl = document.getElementById("add-error");
+  const pickerVal = document.getElementById("new-date-picker").value;
+  const note      = document.getElementById("new-note").value.trim();
+  const time      = document.getElementById("new-time").value.trim();
+  const capacity  = parseInt(document.getElementById("new-capacity").value);
+  const location  = document.getElementById("new-location").value.trim();
+  const errorEl   = document.getElementById("add-error");
 
-  if (!id || !title || !date || !time || !capacity || !location) {
-    errorEl.textContent = "All fields are required.";
+  if (!pickerVal) {
+    errorEl.textContent = "Please select a date.";
     errorEl.style.display = "block";
     return;
   }
 
+  const { id, title, date } = walkFromDatePicker(pickerVal, note);
+
   if (allWalks.some(w => w.id === id)) {
-    errorEl.textContent = "A walk with that ID already exists.";
+    errorEl.textContent = "A walk for that date already exists.";
     errorEl.style.display = "block";
     return;
   }

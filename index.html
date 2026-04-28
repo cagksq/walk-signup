@@ -170,6 +170,19 @@
 
     input:focus { outline: none; border-color: #2d5016; }
 
+    textarea {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    textarea:focus { outline: none; border-color: #2d5016; }
+
     button[type="submit"] {
       grid-column: 1 / -1;
       background: #2d5016;
@@ -479,6 +492,10 @@ function formFields(cls, label, walkId) {
         <label>Cell number</label>
         <input name="cell" type="tel" required>
       </div>
+      <div class="full-width">
+        <label>Comments or questions <span style="color:#999;font-weight:normal">(optional)</span></label>
+        <textarea name="comment" rows="2"></textarea>
+      </div>
       <div class="msg"></div>
       <button type="submit">${label}</button>
     </form>`;
@@ -499,7 +516,8 @@ async function handleSubmit(e, walk, endpoint, formCls) {
     firstName: form.firstName.value,
     lastName: form.lastName.value,
     email: form.email.value,
-    cell: form.cell.value
+    cell: form.cell.value,
+    comment: form.comment.value.trim()
   };
 
   try {
